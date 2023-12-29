@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "lib": [
+      "ES6",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ES6",
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "experimentalDecorators": false
+    //    "useDefineForClassFields": false
+  },
+  "include": [
+    "src/**/*.ts",
+    "resources/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
