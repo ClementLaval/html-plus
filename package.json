@@ -1,0 +1,29 @@
+{
+  "name": "html-plus",
+  "version": "0.0.1",
+  "description": "Enhance your static HTML declaratively with HTML Plus. Easily add dynamic features through web components for an enriched and extensible user experience.",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ClementLaval/html-plus.git"
+  },
+  "keywords": [
+    "html",
+    "javascript",
+    "typescript",
+    "decorators",
+    "web",
+    "component",
+    "custom",
+    "elements"
+  ],
+  "author": "Clément Laval",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ClementLaval/html-plus/issues"
+  },
+  "homepage": "https://github.com/ClementLaval/html-plus#readme"
+}
