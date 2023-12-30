@@ -47,8 +47,11 @@ export const customElement: CustomElementDecorator =
         '@customElement() decorator should be used on class only'
       );
     }
+
     // Define custom element globally
-    customElements.define(name, target as CustomElementConstructor, options);
+    context.addInitializer(function () {
+      customElements.define(name, target as CustomElementConstructor, options);
+    });
   };
 
 // TODO: Declare interface to global HTML Tag

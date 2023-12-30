@@ -1,26 +1,26 @@
-export type ConverterInputOptions = {
-  type?: String | Number | Boolean | Object;
+export type InputConverterOptions = {
+  type?: 'string' | 'number' | 'boolean' | 'object';
   converter?: Function;
 };
 
-export class ConverterInput {
+export class InputConverter {
   constructor(
-    private value: any,
-    public options?: ConverterInputOptions
+    private value: string,
+    public options?: InputConverterOptions
   ) {}
 
   execute() {
     switch (this.options?.type) {
-      case String: {
+      case 'string': {
         return this.stringToString(this.value);
       }
-      case Number: {
+      case 'number': {
         return this.stringToNumber(this.value);
       }
-      case Boolean: {
+      case 'boolean': {
         return this.stringToBoolean(this.value);
       }
-      case Object: {
+      case 'object': {
         return this.stringToObject(this.value);
       }
 
@@ -39,6 +39,16 @@ export class ConverterInput {
   }
 
   stringToBoolean(value: string): boolean {
+    const trueStr = 'true';
+    const falseStr = 'false';
+
+    if (value.toLowerCase() === trueStr) {
+      return true;
+    }
+    if (value.toLowerCase() === falseStr) {
+      return false;
+    }
+
     return Boolean(value);
   }
 

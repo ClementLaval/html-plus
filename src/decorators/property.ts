@@ -1,4 +1,4 @@
-import { ConverterInput, ConverterInputOptions } from '../helpers/converter-input.js';
+import { InputConverter, InputConverterOptions } from '../helpers/input-converter.js';
 
 /**
  * Use @property() decorator on a custom element variable to bind
@@ -16,24 +16,21 @@ import { ConverterInput, ConverterInputOptions } from '../helpers/converter-inpu
  */
 
 type PropertyDefinitionOptions = {
-  type?: ConverterInputOptions['type'];
+  type?: InputConverterOptions['type'];
   converter?: () => any;
 };
 
-const defaultOptions = {
-  type: String,
+const defaultOptions: PropertyDefinitionOptions = {
+  type: 'string',
 };
 
-export type PropertyDecorator = (
-  options?: PropertyDefinitionOptions
-) => <T, V>(
-  target: ClassAccessorDecoratorTarget<T, V>,
-  context: ClassAccessorDecoratorContext<T, V>
-) => ClassAccessorDecoratorTarget<T, V>;
-
-export const property: PropertyDecorator =
-  (options = defaultOptions) =>
-  (target, context) => {
+export const property = <T, V>(
+  options: PropertyDefinitionOptions = defaultOptions
+) => {
+  return (
+    target: ClassAccessorDecoratorTarget<T, V>,
+    context: ClassAccessorDecoratorContext<T, V>
+  ) => {
     /**
      * Handle decorator position
      */
@@ -48,45 +45,72 @@ export const property: PropertyDecorator =
      */
     const attributeName = context.name.toString();
 
+    /**
+     * Define observedAttributes on the constructor with attributeName to reflect updates
+     */
+    context.addInitializer(function (this: T) {
+      const observedAttributes = this.constructor.observedAttributes || [];
+      if (!observedAttributes.includes(attributeName)) {
+        observedAttributes.push(attributeName);
+        this.constructor.observedAttributes = observedAttributes;
+      }
+    });
+
+    /**
+     * Set new accessor definition
+     */
     return {
-      get: function (this) {
+      get: function (this: T) {
         /**
          * Retrieve initial value passed on accessor
          * @property({type: Number})
          * accessor count = 42;
          */
-        const initialValue = target.get.call(this);
+        const initialValue: V = target.get.call(this);
 
         /**
          * Retrieve data passed in argument on custom element
          * <my-component count="42"></my-component>
          */
         const element = this as HTMLElement;
-        let attributeValue = element.getAttribute(attributeName);
+        const attributeValue = element.getAttribute(attributeName);
 
+        /**
+         * Convert attribute value into selected type
+         */
+        let parsedAttributeValue;
         if (attributeValue) {
-          attributeValue = new ConverterInput(attributeValue, {
+          const converter = new InputConverter(attributeValue, {
             type: options.type,
             converter: options.converter,
-          }).execute();
+          });
+          parsedAttributeValue = converter.execute();
         }
 
         /**
          * Return html props by default
          */
-        return attributeValue || initialValue;
+        return parsedAttributeValue || initialValue;
       },
-      set: function (this, value) {
+
+      set: function (this: T, value: any) {
         /**
          * Update internal property with new value
          */
         target.set.call(this, value);
 
+        const observedAttributes = this.constructor.observedAttributes || [];
+        if (!observedAttributes.includes(attributeName)) {
+          observedAttributes.push(attributeName);
+          this.constructor.observedAttributes = observedAttributes;
+        }
+
         /**
          * Reflect html attribute with the new value
          */
         const element = this as HTMLElement;
-        const attributeValue = element.setAttribute(attributeName, value);
+        element.setAttribute(attributeName, value.toString());
       },
     };
   };
+};
