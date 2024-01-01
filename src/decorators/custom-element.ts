@@ -1,6 +1,11 @@
 import { Constructor } from './base.js';
-import { xAttribute } from '../helpers/xAttribute.js';
-import type { ClassDecoratorMetadata, DecoratorMetadata, EventDecoratorMetadata } from '../types';
+import type { ClassDecoratorMetadata } from '../types';
+import { getClassProperties } from '../helpers/property/getClassProperties.js';
+import { setObservedAttributes } from '../helpers/property/setObservedAttributes.js';
+import { getClassEvents } from '../helpers/event/getClassEvents.js';
+import { setEventListerners } from '../helpers/event/setEventListerners.js';
+import { initDomAttributes } from '../helpers/property/initDomAttributes.js';
+import { setAttributeChangedCallback } from '../helpers/property/setAttributeChangedCallback.js';
 
 /**
  * Use the @customElement decorator to register your custom element.
@@ -43,18 +48,14 @@ export type CustomElementDecorator = (
 
 export const customElement: CustomElementDecorator =
   (name, options) => (target, context) => {
-    /**
-     * Handle decorator position
-     */
+    // Handle decorator position
     if (context.kind !== 'class') {
       throw new Error(
         '@customElement() decorator should be used on class only'
       );
     }
 
-    /**
-     * Add metadata
-     */
+    // Add metadata
     if (context.name) {
       context.metadata[context.name] = {
         name: context.name,
@@ -62,149 +63,28 @@ export const customElement: CustomElementDecorator =
       } satisfies ClassDecoratorMetadata;
     }
 
-    /**
-     * Add accessors to observedAttributes:
-     *  - watch properties and enable reactivity through attributeChangedCallback()
-     */
-    // retrieve all @property() accessors in current Class
-    const properties = Object.entries(
-      context.metadata as DecoratorMetadata[]
-    ).reduce((acc: string[], [key, value]) => {
-      if (value.kind === 'accessor') {
-        acc.push(key);
-      }
-      return acc;
-    }, []);
-    // retrieve existing observedAttributes
-    const observedAttributes =
-      target.prototype.constructor.observedAttributes || [];
+    //  Retrieve all @property() accessors in current Class
+    const properties = getClassProperties(context);
 
-    // foreach accessors enhanced with @property() decorator
-    properties.forEach((property) => {
-      if (!observedAttributes.includes(property)) {
-        // push property name within observedAttributes
-        observedAttributes.push(property);
-        Object.defineProperty(target, 'observedAttributes', {
-          get: function () {
-            return observedAttributes;
-          },
-        });
-      }
-    });
+    // Update observedAttributes with properties
+    setObservedAttributes(target, properties);
 
-    /**
-     * Add events to connectedCallback():
-     * - assign eventListerner to every targeted nodes at initialization
-     */
-    // retrieve all @events() in current Class
-    const events = Object.entries(
-      context.metadata as DecoratorMetadata[]
-    ).reduce((acc: EventDecoratorMetadata[], [key, value]) => {
-      if (value.kind === 'method') {
-        acc.push(value);
-      }
-      return acc;
-    }, []);
+    // Retrieve all @events() in current Class
+    const events = getClassEvents(context);
 
-    const connectecCallback = target.prototype.connectedCallback;
-    target.prototype.connectedCallback = function () {
-      // execute existing connectedCallback
-      connectecCallback.call(this);
+    // Set eventListeners on @events() targets
+    setEventListerners(target, events);
 
-      // foreach events enhanced with @event() decorator
-      events.forEach((event) => {
-        // retrieve each node per event using x-eventName
-        const nodes = this.querySelectorAll(
-          `[${xAttribute(event.name)}]`
-        ) as HTMLElement[];
+    // Init and sync dom attributes for first render
+    initDomAttributes(target, properties);
 
-        // retrieve method
-        const originalMethod = Object.getOwnPropertyDescriptor(
-          this.constructor.prototype,
-          event.name
-        );
-        // set a new eventListener for earch node
-        nodes.forEach((node) => {
-          if (originalMethod) {
-            node.addEventListener(event.type, () => {
-              originalMethod.value.call(this);
-            });
-          }
-        });
-      });
+    // Set property callback used when tracked properties changed
+    setAttributeChangedCallback(target, properties);
 
-      /**
-       * Set DOM attribute with Class property initialValue if not defined
-       * If there is no attribute in DOM, the attributeChangedCallback() is not called a start
-       * The DOM won't be hydrated until the next property update
-       * As @property() decorator can't access DOM directly outside of the accessor.get()
-       * Accessor.get() is not called if there is not attribute, then we have do to this on the class decorator
-       */
-
-      const missingAttributesInDOM = properties.reduce(
-        (acc: string[], property) => {
-          if (!this.getAttribute(property)) {
-            acc.push(property);
-          }
-          return acc;
-        },
-        []
-      );
-
-      missingAttributesInDOM.forEach((property) => {
-        const classProperty = Object.getOwnPropertyDescriptor(
-          this.constructor.prototype,
-          property
-        );
-        if (classProperty?.get) {
-          const initialValue = classProperty.get.call(this);
-          this.setAttribute(property, initialValue);
-        }
-      });
-    };
-
-    /**
-     * Update attributeChangedCallback:
-     *  - callback called when reactive property present in observedAttributes is changed
-     *  - update DOM
-     */
-    const attributeChangedCallback = target.prototype.attributeChangedCallback;
-
-    target.prototype.attributeChangedCallback = function (
-      name: string,
-      oldValue: any,
-      newValue: any
-    ) {
-      // execute existing attributeChangedCallback
-      const result = attributeChangedCallback.apply(this, [
-        name,
-        oldValue,
-        newValue,
-      ]);
-
-      if (result === false) {
-        return;
-      }
-
-      // update DOM
-      properties.forEach((property) => {
-        if (name === property && newValue !== oldValue) {
-          const nodes = this.querySelectorAll(
-            `[${xAttribute(name)}]`
-          ) as HTMLElement[];
-          nodes.forEach((node) => (node.textContent = this[name]));
-        }
-      });
-    };
-
-    /**
-     * Define custom element globally
-     */
     context.addInitializer(function () {
+      // Define custom element globally
       customElements.define(name, target as CustomElementConstructor, options);
     });
-
-    return undefined;
   };
 
 // TODO: Declare interface to global HTML Tag

@@ -94,7 +94,7 @@ export const property = <T, V>(
         /**
          * Return html props by default
          */
-        return parsedAttributeValue || initialValue;
+        return parsedAttributeValue ?? initialValue;
       },
 
       set: function (this: T, value: any) {

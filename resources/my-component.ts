@@ -1,19 +1,17 @@
 import { customElement, property } from '../src/index.js';
 import { event } from '../src/decorators/event.js';
 
-Symbol.metadata ??= Symbol('Symbol.metadata');
-
 @customElement('my-component')
 export class MyComponent extends HTMLElement {
   @property({ type: 'number' })
   accessor count = 32;
 
   @property({ type: 'number' })
-  accessor count2 = 100;
+  accessor count2 = 10;
 
-  static get observedAttributes() {
-    return ['toto'];
-  }
+  // static get observedAttributes() {
+  //   return ['toto'];
+  // }
 
   @event({ type: 'click' })
   increment() {
@@ -21,8 +19,12 @@ export class MyComponent extends HTMLElement {
   }
 
   @event({ type: 'click' })
-  increment2() {
-    this.count2 += 1;
+  handleIncrement(e: Event) {
+    this.increment2(this.count2 % 2 === 0 ? 1 : -1);
+  }
+
+  increment2(number: number) {
+    this.count2 += number;
   }
 
   connectedCallback() {}

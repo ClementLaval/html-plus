@@ -6,9 +6,7 @@ type EventDefinitionOptions = {
 
 export const event = <T, V>(options: EventDefinitionOptions) => {
   return (target: Function, context: ClassMethodDecoratorContext<T>) => {
-    /**
-     * Handle decorator position
-     */
+    //Handle decorator position
     if (!['method'].includes(context.kind)) {
       throw new Error('@event() decorator must be used on methods only.');
     }
@@ -20,7 +18,6 @@ export const event = <T, V>(options: EventDefinitionOptions) => {
      * - Add to disconnectedCallback(): remove eventListener when node unmount
      */
     if (context.name) {
-      // context.metadata[context.name] = context.kind;
       context.metadata[context.name] = {
         name: context.name.toString(),
         kind: context.kind,
