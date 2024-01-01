@@ -108,6 +108,9 @@ export const customElement: CustomElementDecorator =
 
     const connectecCallback = target.prototype.connectedCallback;
     target.prototype.connectedCallback = function () {
+      // execute existing connectedCallback
+      connectecCallback.call(this);
+
       // foreach events enhanced with @event() decorator
       events.forEach((event) => {
         // retrieve each node per event using x-eventName
@@ -129,24 +132,68 @@ export const customElement: CustomElementDecorator =
           }
         });
       });
+
+      /**
+       * Set DOM attribute with Class property initialValue if not defined
+       * If there is no attribute in DOM, the attributeChangedCallback() is not called a start
+       * The DOM won't be hydrated until the next property update
+       * As @property() decorator can't access DOM directly outside of the accessor.get()
+       * Accessor.get() is not called if there is not attribute, then we have do to this on the class decorator
+       */
+
+      const missingAttributesInDOM = properties.reduce(
+        (acc: string[], property) => {
+          if (!this.getAttribute(property)) {
+            acc.push(property);
+          }
+          return acc;
+        },
+        []
+      );
+
+      missingAttributesInDOM.forEach((property) => {
+        const classProperty = Object.getOwnPropertyDescriptor(
+          this.constructor.prototype,
+          property
+        );
+        if (classProperty?.get) {
+          const initialValue = classProperty.get.call(this);
+          this.setAttribute(property, initialValue);
+        }
+      });
     };
 
     /**
      * Update attributeChangedCallback:
      *  - callback called when reactive property present in observedAttributes is changed
-     *  - update front html
+     *  - update DOM
      */
     const attributeChangedCallback = target.prototype.attributeChangedCallback;
+
     target.prototype.attributeChangedCallback = function (
       name: string,
       oldValue: any,
       newValue: any
     ) {
+      // execute existing attributeChangedCallback
+      const result = attributeChangedCallback.apply(this, [
+        name,
+        oldValue,
+        newValue,
+      ]);
+
+      if (result === false) {
+        return;
+      }
+
+      // update DOM
       properties.forEach((property) => {
-        const nodes = this.querySelectorAll(
-          `[${xAttribute(name)}]`
-        ) as HTMLElement[];
-        nodes.forEach((node) => (node.textContent = this[name]));
+        if (name === property && newValue !== oldValue) {
+          const nodes = this.querySelectorAll(
+            `[${xAttribute(name)}]`
+          ) as HTMLElement[];
+          nodes.forEach((node) => (node.textContent = this[name]));
+        }
       });
     };
 

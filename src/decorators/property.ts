@@ -66,7 +66,7 @@ export const property = <T, V>(
       get: function (this: T) {
         /**
          * Retrieve initial value passed on accessor
-         * @property({type: Number})
+         * @property({type: 'number'})
          * accessor count = 42;
          */
         const initialValue: V = target.get.call(this);
@@ -82,6 +82,7 @@ export const property = <T, V>(
          * Convert attribute value into selected type
          */
         let parsedAttributeValue;
+
         if (attributeValue) {
           const converter = new InputConverter(attributeValue, {
             type: options.type,

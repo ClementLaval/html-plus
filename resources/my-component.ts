@@ -8,6 +8,9 @@ export class MyComponent extends HTMLElement {
   @property({ type: 'number' })
   accessor count = 32;
 
+  @property({ type: 'number' })
+  accessor count2 = 100;
+
   static get observedAttributes() {
     return ['toto'];
   }
@@ -17,13 +20,22 @@ export class MyComponent extends HTMLElement {
     this.count += 1;
   }
 
-  connectedCallback() {
-    // this.increment();
+  @event({ type: 'click' })
+  increment2() {
+    this.count2 += 1;
   }
 
-  attributeChangedCallback(name: string) {
-    // console.log(name);
-    // const els = this.querySelectorAll(`[x-${name}]`);
-    // els.forEach((el) => (el.textContent = this[name]));
+  connectedCallback() {}
+
+  attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+    if (name === 'count' && oldValue === null) {
+      console.log('First render');
+      return true;
+    }
+
+    if (name === 'count' && oldValue !== newValue) {
+      console.log('NOP BLOCKED');
+      return false;
+    }
   }
 }
