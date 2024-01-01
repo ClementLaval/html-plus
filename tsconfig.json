@@ -1,11 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    //    "target": "ES6",
+    //    "lib": [
+    //      "ES6",
+    //      "DOM",
+    //      "DOM.Iterable"
+    //    ],
+    "target": "es2022",
     "lib": [
-      "ES6",
-      "DOM",
-      "DOM.Iterable"
+      "es2022",
+      "esnext.decorators",
+      "dom"
     ],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": false,
     "module": "ES6",
     "moduleResolution": "Bundler",
     "allowJs": true,
@@ -13,8 +21,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "experimentalDecorators": false
+    "outDir": "./dist"
     //    "useDefineForClassFields": false
   },
   "include": [

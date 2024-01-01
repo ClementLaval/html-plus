@@ -1,4 +1,5 @@
 import { InputConverter, InputConverterOptions } from '../helpers/input-converter.js';
+import { PropertyDecoratorMetadata } from '../types';
 
 /**
  * Use @property() decorator on a custom element variable to bind
@@ -41,20 +42,22 @@ export const property = <T, V>(
     }
 
     /**
+     * Add metadata
+     * Used by main Class Decorator to set some behaviors
+     * - Add to observedAttributes: enable reactivity
+     * - Add to attributeChangedCallback(): track updates and change DOM
+     */
+    if (context.name) {
+      context.metadata[context.name] = {
+        name: context.name.toString(),
+        kind: context.kind,
+      } satisfies PropertyDecoratorMetadata;
+    }
+
+    /**
      * Retrieve DOM attribute
      */
     const attributeName = context.name.toString();
-
-    /**
-     * Define observedAttributes on the constructor with attributeName to reflect updates
-     */
-    context.addInitializer(function (this: T) {
-      const observedAttributes = this.constructor.observedAttributes || [];
-      if (!observedAttributes.includes(attributeName)) {
-        observedAttributes.push(attributeName);
-        this.constructor.observedAttributes = observedAttributes;
-      }
-    });
 
     /**
      * Set new accessor definition
@@ -95,21 +98,12 @@ export const property = <T, V>(
 
       set: function (this: T, value: any) {
         /**
-         * Update internal property with new value
-         */
-        target.set.call(this, value);
-
-        const observedAttributes = this.constructor.observedAttributes || [];
-        if (!observedAttributes.includes(attributeName)) {
-          observedAttributes.push(attributeName);
-          this.constructor.observedAttributes = observedAttributes;
-        }
-
-        /**
          * Reflect html attribute with the new value
+         * By setting html attribute, it does active web component reactivity
+         * Class value are automatically updated
          */
-        const element = this as HTMLElement;
-        element.setAttribute(attributeName, value.toString());
+        const rootElement = this as HTMLElement;
+        rootElement.setAttribute(attributeName, value.toString());
       },
     };
   };

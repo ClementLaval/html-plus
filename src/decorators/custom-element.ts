@@ -1,4 +1,6 @@
 import { Constructor } from './base.js';
+import { xAttribute } from '../helpers/xAttribute.js';
+import type { ClassDecoratorMetadata, DecoratorMetadata, EventDecoratorMetadata } from '../types';
 
 /**
  * Use the @customElement decorator to register your custom element.
@@ -41,17 +43,121 @@ export type CustomElementDecorator = (
 
 export const customElement: CustomElementDecorator =
   (name, options) => (target, context) => {
-    // Handle decorator position
+    /**
+     * Handle decorator position
+     */
     if (context.kind !== 'class') {
       throw new Error(
         '@customElement() decorator should be used on class only'
       );
     }
 
-    // Define custom element globally
+    /**
+     * Add metadata
+     */
+    if (context.name) {
+      context.metadata[context.name] = {
+        name: context.name,
+        kind: context.kind,
+      } satisfies ClassDecoratorMetadata;
+    }
+
+    /**
+     * Add accessors to observedAttributes:
+     *  - watch properties and enable reactivity through attributeChangedCallback()
+     */
+    // retrieve all @property() accessors in current Class
+    const properties = Object.entries(
+      context.metadata as DecoratorMetadata[]
+    ).reduce((acc: string[], [key, value]) => {
+      if (value.kind === 'accessor') {
+        acc.push(key);
+      }
+      return acc;
+    }, []);
+    // retrieve existing observedAttributes
+    const observedAttributes =
+      target.prototype.constructor.observedAttributes || [];
+
+    // foreach accessors enhanced with @property() decorator
+    properties.forEach((property) => {
+      if (!observedAttributes.includes(property)) {
+        // push property name within observedAttributes
+        observedAttributes.push(property);
+        Object.defineProperty(target, 'observedAttributes', {
+          get: function () {
+            return observedAttributes;
+          },
+        });
+      }
+    });
+
+    /**
+     * Add events to connectedCallback():
+     * - assign eventListerner to every targeted nodes at initialization
+     */
+    // retrieve all @events() in current Class
+    const events = Object.entries(
+      context.metadata as DecoratorMetadata[]
+    ).reduce((acc: EventDecoratorMetadata[], [key, value]) => {
+      if (value.kind === 'method') {
+        acc.push(value);
+      }
+      return acc;
+    }, []);
+
+    const connectecCallback = target.prototype.connectedCallback;
+    target.prototype.connectedCallback = function () {
+      // foreach events enhanced with @event() decorator
+      events.forEach((event) => {
+        // retrieve each node per event using x-eventName
+        const nodes = this.querySelectorAll(
+          `[${xAttribute(event.name)}]`
+        ) as HTMLElement[];
+
+        // retrieve method
+        const originalMethod = Object.getOwnPropertyDescriptor(
+          this.constructor.prototype,
+          event.name
+        );
+        // set a new eventListener for earch node
+        nodes.forEach((node) => {
+          if (originalMethod) {
+            node.addEventListener(event.type, () => {
+              originalMethod.value.call(this);
+            });
+          }
+        });
+      });
+    };
+
+    /**
+     * Update attributeChangedCallback:
+     *  - callback called when reactive property present in observedAttributes is changed
+     *  - update front html
+     */
+    const attributeChangedCallback = target.prototype.attributeChangedCallback;
+    target.prototype.attributeChangedCallback = function (
+      name: string,
+      oldValue: any,
+      newValue: any
+    ) {
+      properties.forEach((property) => {
+        const nodes = this.querySelectorAll(
+          `[${xAttribute(name)}]`
+        ) as HTMLElement[];
+        nodes.forEach((node) => (node.textContent = this[name]));
+      });
+    };
+
+    /**
+     * Define custom element globally
+     */
     context.addInitializer(function () {
       customElements.define(name, target as CustomElementConstructor, options);
     });
+
+    return undefined;
   };
 
 // TODO: Declare interface to global HTML Tag
