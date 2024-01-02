@@ -1,4 +1,4 @@
-import { xAttribute } from '../xAttribute.js';
+import { xAttribute } from '../xAttribute';
 
 /**
  * Update attributeChangedCallback:

@@ -1,4 +1,4 @@
-import { Constructor } from '../../decorators/base.js';
+import { Constructor } from '../../decorators/base';
 import { type DecoratorMetadata, EventDecoratorMetadata } from '../../types';
 
 /**

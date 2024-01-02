@@ -1,16 +1,11 @@
 {
   "compilerOptions": {
-    //    "target": "ES6",
-    //    "lib": [
-    //      "ES6",
-    //      "DOM",
-    //      "DOM.Iterable"
-    //    ],
-    "target": "es2022",
+    "target": "ES6",
     "lib": [
-      "es2022",
-      "esnext.decorators",
-      "dom"
+      "ES6",
+      "DOM",
+      "DOM.Iterable",
+      "esnext.decorators"
     ],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": false,
@@ -22,7 +17,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist"
-    //    "useDefineForClassFields": false
   },
   "include": [
     "src/**/*.ts",

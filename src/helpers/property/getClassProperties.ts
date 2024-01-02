@@ -1,5 +1,5 @@
 import type { DecoratorMetadata } from '../../types';
-import { Constructor } from '../../decorators/base.js';
+import { Constructor } from '../../decorators/base';
 
 /**
  * Return accessors properties from Class context extended with @property() decorator

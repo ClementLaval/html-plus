@@ -1,4 +1,4 @@
-import { InputConverter, InputConverterOptions } from '../helpers/input-converter.js';
+import { InputConverter, InputConverterOptions } from '../helpers/input-converter';
 import { PropertyDecoratorMetadata } from '../types';
 
 /**

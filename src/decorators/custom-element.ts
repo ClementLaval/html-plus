@@ -1,11 +1,11 @@
-import { Constructor } from './base.js';
+import { Constructor } from './base';
 import type { ClassDecoratorMetadata } from '../types';
-import { getClassProperties } from '../helpers/property/getClassProperties.js';
-import { setObservedAttributes } from '../helpers/property/setObservedAttributes.js';
-import { getClassEvents } from '../helpers/event/getClassEvents.js';
-import { setEventListerners } from '../helpers/event/setEventListerners.js';
-import { initDomAttributes } from '../helpers/property/initDomAttributes.js';
-import { setAttributeChangedCallback } from '../helpers/property/setAttributeChangedCallback.js';
+import { getClassProperties } from '../helpers/property/getClassProperties';
+import { setObservedAttributes } from '../helpers/property/setObservedAttributes';
+import { getClassEvents } from '../helpers/event/getClassEvents';
+import { setEventListerners } from '../helpers/event/setEventListerners';
+import { initDomAttributes } from '../helpers/property/initDomAttributes';
+import { setAttributeChangedCallback } from '../helpers/property/setAttributeChangedCallback';
 
 /**
  * Use the @customElement decorator to register your custom element.
