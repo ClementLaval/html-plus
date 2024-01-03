@@ -24,3 +24,10 @@ Required:
 // main.js
 Symbol.metadata ??= Symbol('Symbol.metadata');
 ```
+
+# Vite, Esbuild
+
+Disable esbuild and use tsc instead
+Esbuild doesn't support emitDecoratorMedata yet.
+
+https://github.com/ezolenko/rollup-plugin-typescript2

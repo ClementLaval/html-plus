@@ -2,9 +2,8 @@
   "name": "html-plus",
   "version": "0.0.1",
   "description": "Enhance your static HTML declaratively with HTML Plus. Easily add dynamic features through web components for an enriched and extensible user experience.",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
     "dev": "tsup --watch",

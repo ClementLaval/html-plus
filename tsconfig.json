@@ -1,14 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ESNext",
     "lib": [
-      "ES6",
+      "ESNext",
       "DOM",
       "DOM.Iterable",
       "esnext.decorators"
     ],
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": false,
     "module": "ES6",
     "moduleResolution": "Bundler",
     "allowJs": true,
@@ -19,8 +17,7 @@
     "outDir": "./dist"
   },
   "include": [
-    "src/**/*.ts",
-    "resources/**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules"

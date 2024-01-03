@@ -1,4 +1,4 @@
-Symbol.metadata ??= Symbol('Symbol.metadata');
+(Symbol.metadata as any) ??= Symbol('Symbol.metadata');
 
 export { customElement } from './decorators/custom-element';
 export { property } from './decorators/property';
